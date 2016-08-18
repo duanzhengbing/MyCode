@@ -16,3 +16,4 @@ public:
 };
 
 const char* const str = "duanzhengbing";
+constexpr int = 100;
