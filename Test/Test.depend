@@ -1,0 +1,15 @@
+# depslib dependency file v1.0
+1470154375 source:d:\sublimesource\test\main.cpp
+	<string>
+	<map>
+	<set>
+	<algorithm>
+	"sort.h"
+
+1470153609 d:\sublimesource\test\sort.h
+	<iostream>
+	<vector>
+	<cassert>
+	<algorithm>
+	<functional>
+

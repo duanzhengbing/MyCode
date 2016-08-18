@@ -1,0 +1,20 @@
+# depslib dependency file v1.0
+1470403234 source:d:\sublimesource\thread\main.cpp
+	<iostream>
+	"extern.h"
+	"other.h"
+
+1470404032 source:d:\sublimesource\thread\extern.cc
+	"extern.h"
+	<cctype>
+
+1470405503 d:\sublimesource\thread\extern.h
+	<iostream>
+	<string>
+
+1470403122 source:d:\sublimesource\thread\other.cc
+	"extern.h"
+
+1470403295 d:\sublimesource\thread\other.h
+	"extern.h"
+
