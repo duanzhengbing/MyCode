@@ -1,4 +1,4 @@
-
+/* author : duanzhengbing */
 #include <stdio.h>
 #define MAX_NUM (1U<<31)
 int
