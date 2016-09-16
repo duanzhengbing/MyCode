@@ -2,6 +2,7 @@
 #include <vector>
 #include <cassert>
 #include <algorithm>
+#include <exception>
 #include <functional>
 using namespace std;
 
@@ -355,11 +356,162 @@ static void sortByAge(std::vector<int>& v)
     v = tmp;
 }
 
+/**
+ * 桶排序，适合0-100的整数排序，时间复杂度为O(3*N) = O(n)
+ * 空间复杂度为O(max-min)。当范围很小时，辅助空间很小。
+ */
+void bucketSort(std::vector<int>& v)
+{
+    if(v.empty())
+        return;
+    int max_elem = *(std::max_element(v.begin(), v.end()));
+    int min_elem = *(std::min_element(v.begin(), v.end()));
+    std::vector<int> tmp(max_elem - min_elem + 1, 0);
+    for (int i = 0; i < v.size(); ++i)
+    {
+        tmp[v[i] - min_elem]++;
+    }
+
+    int j = 0;
+    for (int i = 0; i < tmp.size(); ++i)
+    {
+        while(tmp[i] != 0)
+        {
+            v[j++] = i + min_elem;
+            tmp[i]--; 
+        }
+    }
+}
+
+/**
+ * 对年龄排序，总共100个桶，每个桶存放的是当前数的个数
+ * 时间复杂度为O(N)，适用于在一定范围内含有很多重复的值
+ */
+void sortByAgeII(std::vector<int>& v)
+{
+    int tmp[100] = {0}; //100个桶，桶中存放当前索引在待排数据中出现的次数
+    for (int i = 0; i < v.size(); ++i)
+    {
+        if(v[i] < 100 && v[i] > 0)
+            tmp[v[i]]++;
+        else
+            std::cout << v[i] << " is invalid! must belong (0, 100)" << endl;
+    }
+
+    /**
+     * 依次打印桶元素至源数组中，每个桶中可能包含多个数
+     */
+    int j = 0;
+    for (int i = 0; i < 100; ++i)
+    {
+        while(tmp[i] != 0)
+        {
+            v[j++] = i;
+            tmp[i]--;
+        }
+    }
+}
+
+
+// Void RadixSort(Node L[],length,maxradix)
+// {
+//    int m,n,k,lsp;
+//    k=1;m=1;
+//    int temp[10][length-1];
+//    Empty(temp); //清空临时空间
+//    while(k<maxradix) //遍历所有关键字
+//    {
+//      for(int i=0;i<length;i++) //分配过程
+//     {
+//        if(L[i]<m)
+//           Temp[0][n]=L[i];
+//        else
+//           Lsp=(L[i]/m)%10; //确定关键字
+//        Temp[lsp][n]=L[i];
+//        n++;
+//    }
+//    CollectElement(L,Temp); //收集
+//    n=0;
+//    m=m*10;
+//   k++;
+//  }
+// }
+// 
+
+/**
+ * 基数排序，只是对正整数进行排序，没有考虑负数
+ * @param v      [description]
+ * @param radixs [基数，多关键码排序的关键码个数]
+ * 在对正整数排序时，基数就是最大值的位数
+ */
+void RadixSortforInteger(std::vector<int>& v, int radixs)
+{
+    if(v.empty())
+        return;
+    int len = v.size();
+    int idxInBucket = 0;
+    int m   = 1;
+    /* 桶数组第二维存储映射到桶中的多个数，最大为len */
+    int invalid_value = -1;
+    int bucket[10][len];
+    /* 初始化桶中的数据 */
+    for (int i = 0; i < 10; ++i)
+    {
+        for (int j = 0; j < len; ++j)
+        {
+            bucket[i][j] = invalid_value;
+        }
+    }
+
+    for (int k = 0; k < radixs; ++k)
+    {
+        for (int i = 0; i < len; ++i)
+        {
+            if(v[i] < 0)
+                throw std::logic_error("data is not integer!");
+            int keyword = (v[i] / m) % 10;
+            bucket[keyword][idxInBucket++] = v[i];
+        }
+
+        /* 收集数据，将桶中合法的数据写入原数组，同时初始化桶 */
+        int idxInData = 0;
+        for (int i = 0; i < 10; ++i)
+        {
+            for (int j = 0; j < len; ++j)
+            {
+                if(bucket[i][j] != invalid_value)
+                {
+                    v[idxInData++] = bucket[i][j];
+                    bucket[i][j] = invalid_value;
+                }
+            }
+        }
+
+        idxInBucket = 0;
+        m = m * 10;
+    }
+}
+
+void testBucket()
+{
+    constexpr int size = 1000;
+    std::vector<int> v(size, 0);
+    for (int i = 0; i < size; ++i)
+    {
+        v[i] = rand() % 1000;
+    }
+
+    // bucketSort(v);
+    // sortByAgeII(v);
+    RadixSortforInteger(v, 3);
+    print(v);
+}
 
 int main(int argc, char const *argv[])
 {
-    std::vector<int> v {49,38,65,97,76,13,27,49};
+    // std::vector<int> v {49,38,65,97,76,13,27,49};
     // std::vector<int> v {49,38};
+    // std::vector<int> v{1};
     // cout << partition2(v,0,v.size()-1) << endl;
     // print(v);
     // std::vector<int> v {9,8,6,7,7,3,2,4};
@@ -372,8 +524,13 @@ int main(int argc, char const *argv[])
     // heapSort(v);
     
     // bubbleSort(v);
-    quickSort(v);
-    print(v);
+    // quickSort(v);
+    // sortByAgeII(v);
+    
+    testBucket();
+
+    // bucketSort(v);
+    // print(v);
     // 
     // string str = "abcdacfdghjikcnbasdfhjcksassadf";
     // sortStr(str);

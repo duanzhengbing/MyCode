@@ -2,6 +2,10 @@
 #include <vector>
 #include <deque>
 #include <stack>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <sstream>
 using namespace std;
 
 struct TreeNode
@@ -14,16 +18,27 @@ struct TreeNode
 
 TreeNode* createTree()
 {
-    TreeNode* root = new TreeNode(0);
-    root->left = new TreeNode(1);
-    root->right = new TreeNode(2);
-    root->left->left = new TreeNode(3);
-    root->left->right = new TreeNode(4);
-    root->right->left = new TreeNode(5);
-    root->right->right = new TreeNode(6);
-    root->left->left->right = new TreeNode(7);
-    root->left->right->left = new TreeNode(9);
-    root->left->right->right = new TreeNode(10);
+    TreeNode* root = new TreeNode(1);
+    root->left = new TreeNode(2);
+    root->right = new TreeNode(3);
+    root->left->left = new TreeNode(4);
+    root->left->right = new TreeNode(5);
+    root->right->left = new TreeNode(6);
+    root->right->right = new TreeNode(7);
+    // root->left->left->right = new TreeNode(8);
+    // root->left->right->left = new TreeNode(9);
+    // root->left->right->right = new TreeNode(10);
+    return root;
+}
+TreeNode* createTree2()
+{
+    TreeNode* root = new TreeNode(6);
+    // root->left = new TreeNode(6);
+    root->right = new TreeNode(7);
+    // root->left->left = new TreeNode(4);
+    // root->left->right = new TreeNode(7);
+    // root->right->left = new TreeNode(12);
+    // root->right->right = new TreeNode(18);
     return root;
 }
 
@@ -271,6 +286,8 @@ vector<int> inorderTraversal(TreeNode* root)
     }       
     return ret;
 }
+
+
 /**
  * 迭代算法先序遍历，使用栈
  */
@@ -333,35 +350,258 @@ void postorderTraversal(TreeNode* root)
     }
 }
 
+bool isSubtree(TreeNode* root1, TreeNode* root2)
+{
+    if(root1 == NULL)
+        return true;
+    if(root2 == NULL)
+        return true;
 
+    bool left, right;
+    if(root2->value == root1->value)
+    {
+        return isSubtree(root1->left, root2->left) && isSubtree(root1->right, root2->right);
+    }
+    else if(root2->value < root1->value)
+    {
+        return isSubtree(root1->left, root2);
+    }
+    else
+        return isSubtree(root1->right, root2);
+}
+
+/**
+ * 非递归中序遍历
+ */
+std::vector<int> InorderTraverse(TreeNode* root)
+{
+    if(root == nullptr)
+        return std::vector<int>();
+
+    std::vector<int> v;
+    std::stack<TreeNode*> S;
+    S.push(root); //根节点入栈
+    while(!S.empty())
+    {
+        TreeNode* p = S.top();
+        while(p != nullptr) //沿着左子树一直往左遍历并压入栈
+        {
+            S.push(p->left);
+            p = p->left;
+        }
+
+        S.pop();
+        if(!S.empty())
+        {
+            p = S.top();
+            /* 访问节点，并将访问过的节点弹出栈 */
+            S.pop();
+            v.push_back(p->value);
+            cout << p->value << " ";
+            /* 继续向右探索，右子树根节点压入栈 */
+            S.push(p->right);
+        }
+
+    }
+    cout << endl;
+    return v;
+}
+
+/**
+ * 非递归前序遍历，每次访问栈顶元素，同时将栈顶元素的右孩子，左孩子
+ * 一次入栈。每次循环都是左孩子处在栈顶
+ */
+std::vector<int> PreorderTraverse(TreeNode* root)
+{
+    if(root == nullptr)
+        return std::vector<int>();
+
+    std::vector<int> v;
+    std::stack<TreeNode*> S;
+    S.push(root);
+    v.push_back(root->value);
+
+    while(!S.empty())
+    {
+        TreeNode* p = S.top();
+        S.pop();
+        v.push_back(p->value);
+        cout << p->value << " ";
+        
+        if(p->right != nullptr)
+            S.push(p->right);
+        if(p->left != nullptr)
+            S.push(p->left);
+    }
+
+    cout << endl;
+    return v;
+}
+
+void PostorderTraverse(TreeNode* root)
+{
+    if(root == nullptr)
+        return;
+
+    std::stack<TreeNode*> S;
+    S.push(root);
+    TreeNode* pre = nullptr;
+    while(!S.empty())
+    {
+        TreeNode* cur = S.top();
+        if((cur->left == nullptr && cur->right == nullptr) ||
+            (pre != nullptr && (cur->left == pre || cur->right == pre)))
+        {
+            cout << cur->value << " ";
+            S.pop();
+            pre = cur;
+        }
+        else
+        {
+            if(cur->right != nullptr)
+                S.push(cur->right);
+            if(cur->left != nullptr)
+                S.push(cur->left);
+        }
+    }
+
+    cout << endl;
+}
+
+string printPath(const std::vector<int>& v)
+{
+    stringstream ss;
+    int length = v.size();
+    for (int i = 0; i < length; ++i)
+    {
+        if(i == length - 1)
+            ss << v[i];
+        else
+            ss << v[i] << "->";
+    }
+    
+    return ss.str();
+}
+
+vector<vector<int>> pathSum(TreeNode* root, int sum)
+{
+    std::vector<vector<int>> ret;
+    if(root == nullptr)
+        return ret;
+
+    int tmp = 0;
+    std::vector<int> path;
+    std::stack<TreeNode*> S;
+    TreeNode* pre = nullptr;
+    TreeNode* cur = root;
+
+    while(!S.empty() || cur != nullptr)
+    {
+        while(cur != nullptr)
+        {
+            S.push(cur);
+            path.push_back(cur->value);
+            tmp += cur->value;
+            cur = cur->left;
+        }
+
+        cur = S.top();
+        if(cur->left == nullptr && cur->right == nullptr)
+        {
+            if(tmp == sum)
+                ret.push_back(path);
+        }
+
+        if(cur->right != nullptr && cur->right != pre)
+        {
+            cur = cur->right;
+        }
+        else
+        {
+            S.pop();
+            path.pop_back();
+            tmp -= cur->value;
+            pre = cur;
+            cur = nullptr;
+        }
+    }
+
+    return ret;
+
+}
+
+void PrintAllPath(TreeNode* root)
+{
+    if(root == nullptr)
+        return;
+
+    std::vector<int> path;
+    std::stack<TreeNode*> S;
+    TreeNode* pre = nullptr;
+    TreeNode* cur = root;
+    while(!S.empty() || cur != nullptr)
+    {
+        while(cur != nullptr)
+        {
+            S.push(cur);
+            path.push_back(cur->value);
+            cur = cur->left;
+        }
+
+        cur = S.top();
+        if(cur->left == nullptr && cur->right == nullptr)
+        {
+            cout << printPath(path) << endl;
+        }
+
+        if(cur->right != nullptr && cur->right != pre)
+        {
+            cur = cur->right;
+        }
+        else
+        {
+            S.pop();
+            path.pop_back();
+            pre = cur;
+            cur = nullptr;
+        }
+
+    }
+}
+
+TreeNode* invertTree(TreeNode* root) 
+{
+    if(root == nullptr)
+        return root;
+    if(root->left == nullptr && root->right == nullptr)
+        return root;
+
+    std::swap(root->left, root->right);
+    invertTree(root->left);        
+    invertTree(root->right);
+
+    return root;        
+}
 
 int main(int argc, char const *argv[])
 {
     TreeNode* tree = createTree();
-    printFromTopToBottom(tree);
-    // inorderTraversal(tree);
-    postorderTraversal(tree);
-    cout << endl;
-    /*std::vector<vector<int>> pathSet = findAllPathNoRecursion(tree);
-    for (unsigned i = 0; i < pathSet.size(); ++i)
-    {
-        for(auto v : pathSet[i])
-            std::cout << v << " ";
-        cout << endl;
-    }*/
 
-/*  std::vector<vector<int>> ret = pathOfSum(tree,14);
-    for (unsigned i = 0; i < ret.size(); ++i)
+    // preorderTraversal(tree);
+
+    PreorderTraverse(tree);
+    // InorderTraverse(tree);
+    // PostorderTraverse(tree);
+    PrintAllPath(tree);
+    // invertTree(tree);
+    // PreorderTraverse(tree);
+    std::vector<vector<int>> v = pathSum(tree,10);
+    for (int i = 0; i < v.size(); ++i)
     {
-        for(auto v : ret[i])
-            std::cout << v << " ";
+        for(auto j : v[i])
+            cout << j << " ";
         cout << endl;
     }
-    cout << minDepth(tree) << endl;*/
-    // cout << minDepthRecursion(tree) << endl;
-    
-    preorderTraversal(tree);
-
     destroyTree(tree);
     return 0;
 }

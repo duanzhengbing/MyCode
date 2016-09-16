@@ -1,14 +1,28 @@
 #include <string>
+#include <cstring>
 #include <map>
 #include <set>
 #include <list>
+#include <queue>
 #include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
 #include <iomanip>
+#include <climits>
 #include "sort.h"
+#include <cmath>
 
 using namespace std;
+
+template<typename Container>
+void printVector(const Container& Con)
+{
+    for (auto it = Con.begin(); it != Con.end(); ++it)
+    {
+        std::cout << *it << " ";
+    }
+    std::cout << std::endl;
+}
 
 /**
  * 字符串左旋转 - 暴力法，时间复杂度为O(m*n)
@@ -421,78 +435,495 @@ void find_factor(int n, int sum, std::vector<vector<int>>& ret)
     find_factor(n - 1, sum, ret); //不放n，n-1 个数填满sum
 }
 
-template<typename InputIterator, typename Con>
-void longest_common_seq_recur(InputIterator a_first, InputIterator a_last,
-                   InputIterator b_first, InputIterator b_last,
-                   Con& ret)
+
+// template<typename Con>
+// Con longest_common_seq(Con A, Con B)
+// {
+//     Con ret;
+//     int lenA = A.size();
+//     int lenB = B.size();
+//     if(lenA == 0 || lenB == 0)
+//         return ret;
+
+
+// }
+
+
+template <typename T>
+int longest_common_seq(const T& con1, const T& con2)
 {
-    if(a_first == a_last || b_first == b_last)
-        return;
-    if(*(a_last - 1) == *(b_last - 1))
+    int len1 = con1.size();
+    int len2 = con2.size();
+    if(len1 == 0 || len2 == 0)
+        return 0;
+
+    std::vector<vector<int>> v(len1 + 1, std::vector<int>(len2 + 1, 0));
+    for (int i = 1; i <= len1; ++i)
     {
-        longest_common_seq_recur(a_first, a_last - 1, b_first, b_last - 1, ret);
-        ret.push_back(*(a_last - 1));
+        for (int j = 1; j <= len2; ++j)
+        {
+            if(con1[i-1] == con2[j-1])
+                v[i][j] = v[i-1][j-1] + 1;
+            else
+            {
+                v[i][j] = max(v[i][j-1], v[i-1][j]);
+            }
+        }
     }
-    else
+
+    return v[len1][len2];
+}
+
+
+/**
+ * 
+ */
+template<typename Container>
+Container longest_inc_seq(const Container& Con)
+{
+    Container tmp;
+    int len = Con.size();
+    if(len == 0)
+        return tmp;
+
+    for (auto it = Con.begin(); it != Con.end(); ++it)
     {
-        Con tmpa = ret;
-        Con tmpb = ret;
-        longest_common_seq_recur(a_first, a_last, b_first, b_last - 1, tmpa);
-        longest_common_seq_recur(a_first, a_last - 1, b_first, b_last, tmpb);
-        if(tmpa.size() > tmpb.size())
-            ret = tmpa;
+        auto iter = std::lower_bound(tmp.begin(), tmp.end(), *it);
+        if(iter == tmp.end())
+            tmp.push_back(*it);
         else
-            ret = tmpb;
+            *iter = *it;
     }
+
+    return tmp; 
 }
 
-template<typename Con>
-Con longest_common_seq(Con A, Con B)
+// std::vector<int> longest_inc_seq(const std::vector<int>& v)
+// {
+//     int len = v.size();
+//     if(len == 0)
+//         return std::vector<int>();
+//     std::vector<int> tmp;
+//     for (int i = 0; i < len; ++i)
+//     {
+//         auto iter = std::lower_bound(tmp.begin(), tmp.end(), v[i]);
+//         if(iter == tmp.end())
+//             tmp.push_back(v[i]);
+//         else
+//             *iter = v[i];
+//     }
+
+//     return tmp;
+// }
+
+int maxSumOfContinousArray(const std::vector<int>& v)
 {
-    Con ret;
-    longest_common_seq_recur(A.begin(), A.end(), B.begin(), B.end(), ret);
+    int len = v.size();
+    if(len == 0)
+        return INT_MIN;
+    int maxSum = v[0];
+    int curSum = v[0];
+    
+    int begin = 0, end = 0;
+
+    for (int i = 1; i < len; ++i)
+    {
+        if(curSum <= 0)
+        {
+            curSum = v[i];
+            if(curSum > maxSum)
+                begin = i;
+        }
+        else
+        {
+            curSum += v[i];
+        }
+
+        if(curSum > maxSum)
+        {
+            maxSum = curSum;
+            end = i;
+        }
+
+    }
+
+    for (int i = begin; i <= end; ++i)
+    {
+        cout << v[i] << " ";
+    }
+    cout << endl;
+
+    return maxSum;
+}
+
+string rstr(string str)
+{
+    int i = 0;
+    int j = str.size() - 1;
+    while(i < j)
+    {
+        std::swap(str[i++], str[j--]);
+    }
+
+    return str;
+}
+
+
+void foo(std::vector<int> v, int k)
+{
+    int len = v.size();
+    int n = len /2;
+    int num =  std::pow(2, k);
+    // std::vector<int> tmp(len, 0 );
+    // for (int i = 0; i < n; ++i)
+    // {
+    //     int val = i * num;
+    //     if(val >= len)
+    //         val = val % (len - 1);
+
+    //     tmp[val] = v[i]; 
+    //     // tmp[len - val -1] = v[len - i - 1]; 
+    // }
+    // for (int i = len - 1; i >= n; --i)
+    // {
+    //     int val = (len - i - 1) * num;
+    //     if(val >= len)
+    //         val = val % (len - 1);
+
+    //     tmp[len - val - 1] = v[i]; 
+    //     // tmp[len - val -1] = v[len - i - 1]; 
+    // }
+
+    int tmp = v[1];
+    int i = 1;
+    for (int k = 0; k < len-1; ++k)
+    {
+        int idx = 0;
+        int val = 0;
+        if(i < n)
+        {
+            val = i*num;
+            if(val >= len)
+                val = val % (len - 1);
+            idx = val;
+        }
+        else
+        {
+            val = (len - i - 1) * num;
+            if(val >= len)
+                val = val % (len - 1);
+            idx = len - val - 1;
+        }
+
+        v[idx] = tmp;
+        tmp = v[idx];
+        i = idx;
+    }
+
+    for (int k = 0; k < len; ++k)
+    {
+        std::cout << v[k] << " ";
+    }
+    cout << endl;
+}
+
+void washcard(std::vector<int>& v, int k)
+{
+    int len = v.size();
+    std::vector<int> tmp(len, 0);
+    int n = len / 2;
+    for (int i = 0; i < k; ++i)
+    {
+        int j = 0;
+        int k = 0;
+        while(j < len - 1)
+        {
+            tmp[j] = v[k];
+            tmp[j+1] = v[k+n];
+            j = j+2;
+            k++;
+        }
+
+        v = tmp;
+    }
+
+    for (int i = 0; i < len; ++i)
+    {
+        /* code */
+        cout << v[i] << " ";
+    }
+    cout << endl;
+}
+
+#include <deque>
+void func(int n)
+{
+    std::vector<int> v(n, 0);
+    int i = 0;
+    int num = 1;
+    int empty = 0;
+    while(true)
+    {
+        if(i == n)
+            i = 0;
+        if(num > n)
+            break;
+        if(v[i] == 0)
+            empty++;
+        if(empty == 2)
+        {
+            v[i] = num++;
+            empty = 0;
+        }
+
+        i++;
+    }
+    for (int j = 0; j < v.size(); ++j)
+    {
+        cout << v[j] << " ";
+    }
+    cout << endl;
+}
+
+
+int luckypacket(std::vector<int>& v, int i, int& sum, int& multi)
+{
+    if(i <= 0)
+    {
+        sum = 0;
+        multi = 0;
+        return 0;
+    }
+    if(i == 1)
+    {
+        sum = v[1];
+        multi = v[1];
+        return 0;
+    }
+    
+    int tmp_sum = 0;
+    int tmp_multi = 1;
+    int val = luckypacket(v, i-1, tmp_sum, tmp_multi);
+    if(tmp_sum + v[i-1]> tmp_multi*v[i-1])
+    {
+        val++;
+    }
+    multi = tmp_multi*v[i-1];
+    sum = tmp_sum + v[i-1];
+
+    return val;
+}
+
+int grid(int W, int H)
+{
+    if(W <=0 || H <= 0)
+        return 0;
+    int ret = 0;
+
+    int num1  = 0, num2 = 0;
+    int val = W % 4;
+    num1 = (W / 4) * 2 + ((val == 3) ? 2 : val);
+    num2 = W - num1;
+
+    ret = (H / 4) * (2 * W);
+    val = H % 4;
+    if(val == 0)
+        return ret;
+    else if(val == 1 || val == 2)
+        return ret + num1*val;
+    else
+        return ret + W + num1;
+
+}
+
+bool huiwen(string str)
+{
+    int i = 0;
+    int j = str.size()-1;
+    while(i < j)
+    {
+        if(str[i++] != str[j--])
+            return false;
+    }
+    return true;
+}
+
+int makehuiwen(string A, string B)
+{
+    string tmp;
+    int ret = 0;
+    for (int i = 0; i <= A.size(); ++i)
+    {
+        tmp = A.substr(0, i) + B + A.substr(i, A.size()-i);
+        // cout << tmp << endl;
+        if(huiwen(tmp))
+            ret++;
+    }
+
     return ret;
 }
 
-template<typename Con>
-Con longest_inc_seq(Con C)
+int eatshell(long long start)
 {
-    Con ret;
-    Con tmp = C;
-    sort(C.begin(),C.end());
-    longest_common_seq_recur(C.begin(), C.end(), tmp.begin(),tmp.end(),ret);
+    long long shell = 1000000007;
+    long long limit = 100000;
+    long long ret = 0;
+    unordered_map<long long, long int> visit;
+    deque<long long> que;
+    que.push_back(start % shell);
+    visit[start] = 0;
+    while(!que.empty())
+    {
+        long long pos = que.front();
+        que.pop_front();
+        if(pos == 0)
+            return visit[pos];
+
+        int x1 = (pos * 4 + 3) % shell;
+        if(visit.count(x1) == 0)
+        {
+            que.push_back(x1);
+            visit[x1] = visit[pos] + 1;
+        }
+        
+        int x2 = (pos * 8 + 7) % shell;
+        if(visit.count(x2) == 0)
+        {
+            que.push_back(x2);
+            visit[x2] = visit[pos] + 1;
+        }
+
+    } 
+
+    return -1;
+}
+
+
+void isSort(std::vector<string> v)
+{
+    std::vector<string> tmp = v;
+    std::sort(tmp.begin(), tmp.end());
+    bool isDict = true;
+    bool isLength = true;
+    
+    for (int i = 0; i < v.size(); ++i)
+    {
+        if(v[i] != tmp[i])
+        {
+            isDict = false;
+            break;
+        }
+    }
+    
+    std::multimap<int,string> mp;
+    for (int i = 0; i < v.size(); ++i)
+    {
+        mp.insert(std::pair<int,string>(v[i].size(), v[i]));
+    }
+
+    int j = 0;
+    for (std::multimap<int, string>::iterator i = mp.begin(); i != mp.end(); ++i)
+    {
+        if(i->second != v[j++])
+        {
+            isLength = false;
+            break;
+        }
+    }
+
+    if(isLength && isDict)
+        std::cout<< "both" << endl;
+    else if(!isDict && !isLength)
+        std::cout<< "none" << endl;
+    else if(isDict)
+        std::cout<< "lexicographically" << endl;
+    else
+        std::cout<< "lengths" << endl;
+
+
+}
+
+
+int LastRemaining_Solution(unsigned int n, unsigned int m)
+{
+    queue<int> que;
+    for (int i = 0; i < n; ++i)
+    {
+        que.push(i);
+    }
+    int ret = 0;
+    while(!que.empty())
+    {
+        int count = m-1;
+        while(count-- > 0)
+        {
+            int tmp = que.front();
+            que.pop();
+            que.push(tmp);
+        }
+        ret = que.front();
+        que.pop();
+    }
     return ret;
+}
+
+bool isStr1ContainStr2(string str1, string str2)
+{
+    int len_1 = str1.size();
+    int len_2 = str2.size();
+
+    if(len_1 < len_2)
+        return false;
+    std::vector<int> table(len_2, 0);
+    int i = 1;
+    int j = 0;
+    while(i < len_2)
+    {
+        /* 如果后面的某个字符与第一个字符匹配成功，则i，j携手共进，继续匹配
+         * 并更新i的匹配值为前一匹配值加1
+         */
+        if(str2[i] == str2[j])
+        {
+            j++;
+            table[i] = table[i-1] + 1;
+        }
+        else /* 否则当前字符必须从字符串的起始位置重新匹配，此时匹配值不做更新，即为初始值零 */
+            j = 0;
+
+        i++;
+    }
+
+    i = 0;
+    j = 0;
+    while (i < len_1 && j < len_2)
+    {
+        if(str1[i] == str2[j])
+        {
+            ++i;
+            ++j;
+        }
+        else
+        {
+            if(j == 0)
+                ++i;
+            else
+                j = table[j];
+        }
+    }
+
+    if(j < len_2)
+        return false;
+    else
+        return true;
 }
 
 int main(int argc, char const *argv[])
 {
-    std::vector<int> v;
-    int count = 10;
-    for (int i = 0; i < count; ++i)
-    {
-        v.push_back(rand() % count);
-    }
-    print(v);
-
-
-    // std::vector<std::vector<int>> ret;
-    // find_factor(10, 20, ret);
-    // for (int i = 0; i < ret.size(); ++i)
-    // {
-    //     print(ret[i]);
-    // }
     
-    std::vector<int> v1{1,2,3,5,6,8};
-    std::vector<int> v2{8,2,3,4,5,6};
-    string str1 = "BDCABA";
-    string str2 = "ABCBDAB";
-    // std::vector<int> ret = longest_common_seq(v1, v2);
-    // string retStr = longest_common_seq(str1, str2);
-    // print(ret);
-    // print(retStr);
+    string s = "nowcoder";
+    string t = "owcode";
 
-    string v3 = longest_inc_seq(str2);
-    print(v3);
+    cout << boolalpha << isStr1ContainStr2(s, t) << endl;
 
     return 0;
 }

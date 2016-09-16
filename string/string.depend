@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1472607961 source:d:\sublimesource\string\main.cpp
+	<iostream>
+	<string>
+	<vector>
+	<cstring>
+

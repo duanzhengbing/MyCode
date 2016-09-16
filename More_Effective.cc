@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <list>
+#include <exception>
 using namespace std;
 
 class BST
@@ -7,15 +9,15 @@ class BST
 public:
 	BST() : val(0) {}
 	BST(int _val) : val(_val) {}
-	int get() const { return val; }
-	virtual ~BST() {}
+	int getVal() const { return val; }
+	virtual ~BST() {cout << "base destructor" << endl; }
 private:
 	int val;
 };
 
 ostream& operator<<(ostream& os, const BST& b)
 {
-	os << b.get() << " ";
+	os << b.getVal() << " ";
 	return os;
 }
 
@@ -24,14 +26,15 @@ class BalanceBST : public BST
 public:
 	BalanceBST() : BST() {}
 	BalanceBST(int _val) : BST(_val) {}
-	virtual ~BalanceBST() {}
+	int getNum() const { return num; }
+	virtual ~BalanceBST() { cout << "derived destructor" << endl; }
 private:
 	int num {999};
 };
 
 ostream& operator<<(ostream& os, const BalanceBST& bb)
 {
-	os << bb.get() << " ";
+	os << bb.getVal() << " " << bb.getNum()<< " ";
 	return os;
 }
 
@@ -54,26 +57,81 @@ void deleteArray(ostream& logStream, BST array[])
 }
 
 
-int main(int argc, char const *argv[])
+class rational
 {
-	constexpr int arrSize = 5;
-	BST arr[arrSize] = {BST(1), BST(2), BST(3), BST(4)};
-	printBSTArray(cout, arr, arrSize);
-	
+public:
+	rational(int _a, int _b) : a(_a), b(_b) {}
+	operator double() const
+	{
+		double tmpa = static_cast<double>(a);
+		double tmpb = static_cast<double>(b);
+		return tmpa / tmpb;
+	}
 
-	BalanceBST arr2[arrSize] = 
-	{ 	
-		BalanceBST(10), 
-		BalanceBST(21), 
-		BalanceBST(31), 
-		BalanceBST(41)
+	~rational() {}
+
+private:
+	int a;
+	int b;
+
+};
+
+
+class Array 
+{
+public:
+	class ArraySize 
+	{ // 这个类是新的
+	public:
+		ArraySize(int numElements): theSize(numElements) 
+		{
+			std::cout << "ArraySize Constructor" << std::endl;
+		}
+		int size() const { return theSize; }
+	private:
+		int theSize;
 	};
 
-	printBSTArray(cout, arr2,arrSize);
+	Array(int lowBound, int highBound) {}
+	Array(ArraySize size) {}
+};
 
+class MyException
+{
+public:
+	MyException()
+	{
+		cout << "default Constructor" << endl;
+	}
+	MyException(const MyException& rhs)
+	{
+		cout << "copy    Constructor" << endl;
+	}
+	~MyException()
+	{
+		cout << "Destructor" << endl;
+	}
 
-	BalanceBST *balTreeArray = new BalanceBST[50];
+	int val {18};
+};
 
-	deleteArray(cout, balTreeArray); // log its deletion
-	return 0;
+void funct()
+{
+	static MyException ex;
+	throw &ex;
 }
+
+
+int main(int argc, char const *argv[])
+{
+	try
+	{
+		funct();
+	}
+	catch(MyException* e)
+	{
+		cout << e->val;
+	}
+
+	return 0;
+} 
